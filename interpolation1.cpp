@@ -2,21 +2,28 @@
 #include <vector>
 using namespace std;
 
+// Function to covert Nested Vector form of polynomial to the written algebraic form.
 string polyPrinter(vector<vector<double>> poly){
 
     string polynomial{""};
 
     for(int i=0;i<poly.size();i++){
-        polynomial = polynomial + "+ " + to_string(poly[i][0]) + "x^" + to_string(int(poly[i][1])) + " ";
+        //Adds each polynomial element to the existing string by concatenation
+        //Only uses atmost 4 decimal points to improve readability
+        //Converts power of x to integer because the calculations were done in double form
+        polynomial = polynomial + "+ " + to_string(poly[i][0]).substr(0,4) + "x^" + to_string(int(poly[i][1])) + " ";
     }
     return polynomial;
 }
 
+// Function to simplify the extensive polynomial, ie. combine all coefficients with same powers of x
 vector<vector<double>> simplifier(vector<vector<double>> poly){
 
     vector<vector<double>> finalPoly;
     for(int i=0;i<poly.size();i++){
         for(int j=i+1;j<poly.size();j++){
+            // Adds the coefficients of the elements which have the same power of x
+            // After addition of coefficients, converts the rest of the elements to 0 for easy removal
             if(poly[i][1]==poly[j][1]){
                 poly[i][0] = poly[i][0] + poly[j][0];
                 poly[j][0]=0;
@@ -24,19 +31,22 @@ vector<vector<double>> simplifier(vector<vector<double>> poly){
         }
     }
     for(int i=0;i<poly.size();i++){
-        if(poly[i][0]!=0){
+        // Does not push elements with coefficient as 0 to the final polynomial vector
+        if(poly[i][0]>=0.0001 || poly[i][0]<=-0.0001){
             finalPoly.push_back(poly[i]);
         }
     }
     return finalPoly;
 }
 
+// Function to multiply polynomials in nested vector form
 vector<vector<double>> polynomialMultiplier(vector<vector<double>> p1, vector<vector<double>> p2){
 
     vector<vector<double>> result;
 
     for(int i=0;i<p1.size();i++){
         for(int j=0; j<p2.size();j++){
+            //Polynomial of the form a(x^n) and b(x^m) is stored as [a*b,n+m]
             result.push_back({p1[i][0] * p2[j][0],p1[i][1] + p2[j][1]});
         }
     }
@@ -44,6 +54,7 @@ vector<vector<double>> polynomialMultiplier(vector<vector<double>> p1, vector<ve
     return result;
 } 
 
+// Function to find the l(x)f element of lagrange interpolation equation
 vector<vector<double>> lfinder(int i, double functionValues[][2],int n, double f){
 
     vector<vector<double>> numerator{{1,0}};
@@ -51,18 +62,20 @@ vector<vector<double>> lfinder(int i, double functionValues[][2],int n, double f
 
     for(int j=0;j<n;j++){
         if(j != i){
+            // denumerator is the product of (xi - xn) where n={0,1,2,...i-1,i+1,...n}
             denumerator = denumerator * (functionValues[i][0] - functionValues[j][0]);
         }
     }
 
     for(int j=0;j<n;j++){
         if(j != i){
-                //cout << "\nStep (whole)" << j << " "<< 1 << " "<< (functionValues[j][0]*-1);
+                // numerator is the product of (x - xn) where n={0,1,2,...i-1,i+1,...n}
                 numerator = polynomialMultiplier(numerator,{{1,1},{(functionValues[j][0]*-1),0}});
         }
     }
 
     for(int k=0;k<numerator.size();k++){
+        //Multipies the numerator with the value of (f/denumerator)
         numerator[k][0] = numerator[k][0]*(f/denumerator);
     }
 
@@ -85,6 +98,7 @@ int main(){
         cout<<"Enter f(x): ";
         cin>>fx;
 
+        //Storing the values in a nested array
         functionValues[i][0]={x};
         functionValues[i][1]={fx};
     }
